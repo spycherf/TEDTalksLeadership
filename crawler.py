@@ -7,8 +7,9 @@ import sys
 import time
 from datetime import datetime
 from bs4 import BeautifulSoup
-from urllib.request import urlopen
 from urllib.error import HTTPError
+from urllib.error import URLError
+from urllib.request import urlopen
 
 
 def http_request(url):
@@ -32,6 +33,14 @@ def http_request(url):
                 continue
             else:
                 raise
+        # Handling "WinError 10054" errors
+        except URLError:
+            i += 1
+            sleep_duration = random.randint(1, 60)
+            print("Connection closed by host. Sleeping for {0} seconds...".format(sleep_duration))
+            time.sleep(sleep_duration)
+            print("Trying again...")
+            continue
 
     src = response.read().decode("utf8", "ignore").replace("\r", " ").replace("\n", " ")
     html = BeautifulSoup(src, "lxml")
@@ -81,19 +90,7 @@ def get_data(url):
             break
     assert current_talk_JSON, IOError("JSON details not found")
 
-    # Dates
-    date_recorded = -1
-    date_published = -1
-    for player_talk in current_talk_JSON["player_talks"]:
-        if player_talk["id"] == talk_id:
-            date_recorded = current_talk_JSON["recorded_at"]
-            date_published = player_talk["published"]
-
-            date_recorded = datetime.strptime(date_recorded[:10], "%Y-%m-%d")
-            date_published = datetime.fromtimestamp(date_published)
-            break
-
-    # Getting metadata
+    # Get metadata
     talk_url = full_JSON["url"]
     main_speaker = current_talk_JSON["speaker_name"]
     title = current_talk_JSON["title"]
@@ -104,6 +101,14 @@ def get_data(url):
     duration = current_talk_JSON["duration"]
     nb_languages = len(current_talk_JSON["downloads"]["languages"])
     views = current_talk_JSON["viewed_count"]
+
+    date_recorded = -1
+    date_published = -1
+    for player_talk in current_talk_JSON["player_talks"]:
+        if player_talk["id"] == talk_id:
+            date_recorded = datetime.strptime(current_talk_JSON["recorded_at"][:10], "%Y-%m-%d")
+            date_published = datetime.fromtimestamp(player_talk["published"])
+            break
 
     nb_comments = -1
     if full_JSON["comments"]:
@@ -118,7 +123,7 @@ def get_data(url):
         if speaker["description"]:
             speakers_desc += (speaker["description"] + ";")
 
-    # Getting transcript
+    # Get transcript
     transcript = get_transcript(url)
 
     return {
