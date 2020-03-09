@@ -19,7 +19,7 @@ def wait():
     print("Trying again...")
 
 
-def http_request(url):
+def request_html(url):
     print("Requesting:", url)
     i = 0
 
@@ -54,20 +54,20 @@ def http_request(url):
 
 def get_transcript(url):
     transcript = ""
-    html_src = http_request(url + "/transcript?language=en")
-    divs = html_src.find_all("div", {"class": "Grid__cell flx-s:1 p-r:4"})
 
-    for text in divs:
-        transcript += (re.sub("\s+", " ", text.contents[1].contents[0]).strip() + " ")
-
-    if not transcript:
-        raise IOError("Empty transcript")
+    try:
+        html_src = request_html(url + "/transcript?language=en")
+        divs = html_src.find_all("div", {"class": "Grid__cell flx-s:1 p-r:4"})
+        for text in divs:
+            transcript += (re.sub("\s+", " ", text.contents[1].contents[0]).strip() + " ")
+    except HTTPError:
+        pass
 
     return transcript
 
 
 def get_data(url):
-    html_src = http_request(url)
+    html_src = request_html(url)
     scripts = html_src.find_all("script")
 
     # Extract full JSON
@@ -97,7 +97,7 @@ def get_data(url):
     title = current_talk_JSON["title"]
     event = current_talk_JSON["event"]
     event_type = current_talk_JSON["video_type"]["name"]
-    description = current_talk_JSON["description"]
+    description = re.sub("\s+", " ", current_talk_JSON["description"])
     duration = current_talk_JSON["duration"]
     nb_languages = len(current_talk_JSON["downloads"]["languages"])
     views = current_talk_JSON["viewed_count"]
@@ -131,7 +131,7 @@ def get_data(url):
     transcript = get_transcript(url)
 
     return {
-        "id": talk_id, "url": talk_url, "main_speaker": main_speaker, "title": title,
+        "id": int(talk_id), "url": talk_url, "main_speaker": main_speaker, "title": title,
         "event": event, "event_type": event_type, "description": description, "tags": tags,
         "date_recorded": date_recorded, "date_published": date_published, "duration": duration,
         "nb_languages": nb_languages, "views": views, "nb_comments": nb_comments,
@@ -141,8 +141,8 @@ def get_data(url):
 
 
 def crawl_and_update(output_file,
-                     skip_file,
-                     log_file):
+                     success_log,
+                     failure_log):
     csv_header = [
         "id", "url", "main_speaker", "title",
         "event", "event_type", "description", "tags",
@@ -152,9 +152,12 @@ def crawl_and_update(output_file,
         "transcript"
     ]
 
-    # Get list of IDs that have already been crawled
-    with open(skip_file, "r") as f:
-        to_skip = [int(talk_id) for talk_id in f]
+    # Get list of IDs that have already been crawled and can be skipped
+    with open(success_log, "r") as f:
+        success = [int(talk_id) for talk_id in f]
+    with open(failure_log, "r") as f:
+        failure = [int(talk_id) for talk_id in f]
+    to_skip = success + failure
 
     # If crawling for the first time, write header
     if not os.path.isfile(output_file):
@@ -165,22 +168,22 @@ def crawl_and_update(output_file,
     # Update records
     with open(output_file, "a", newline="", encoding="utf-8") as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=csv_header)
-        for i in range(1, 61000):
+        for i in range(1, 61000):  # approximation of total talks (March 2020)
             sys.stdout.flush()
             if i in to_skip:
                 continue
             url = "https://www.ted.com/talks/" + str(i)
             try:
                 writer.writerow(get_data(url))
+                csvfile.flush()
+                with open(success_log, "a") as f:
+                    f.write(str(i) + "\n")
             except Exception as e:
                 print("Crawling ID {0} failed because of {1}".format(i, e))
-                with open(log_file, "a") as log:
+                with open(failure_log, "a") as log:
                     log.write(str(i) + "\n")
-
-            with open(skip_file, "a") as f:
-                f.write(str(i) + "\n")
 
 
 crawl_and_update("data/ted_talks_metadata_transcripts_FULL.csv",
-                 "to_skip.txt",
-                 "log.txt")
+                 "data/successful.txt",
+                 "data/failed.txt")
