@@ -168,7 +168,7 @@ def crawl_and_update(output_file,
     # Update records
     with open(output_file, "a", newline="", encoding="utf-8") as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=csv_header)
-        for i in range(1, 61000):  # approximation of total talks (March 2020)
+        for i in range(1, 61000):  # approximation of total IDs (March 2020)
             sys.stdout.flush()
             if i in to_skip:
                 continue
@@ -180,8 +180,8 @@ def crawl_and_update(output_file,
                     f.write(str(i) + "\n")
             except Exception as e:
                 print("Crawling ID {0} failed because of {1}".format(i, e))
-                with open(failure_log, "a") as log:
-                    log.write(str(i) + "\n")
+                with open(failure_log, "a") as f:
+                    f.write(str(i) + "\n")
 
 
 crawl_and_update("data/ted_talks_metadata_transcripts_FULL.csv",
