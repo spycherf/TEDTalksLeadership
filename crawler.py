@@ -95,6 +95,7 @@ def get_data(url):
     talk_url = full_JSON["url"]
     main_speaker = current_talk_JSON["speaker_name"]
     title = current_talk_JSON["title"]
+    full_name = full_JSON["name"]
     event = current_talk_JSON["event"]
     event_type = current_talk_JSON["video_type"]["name"]
     description = re.sub("\s+", " ", current_talk_JSON["description"])
@@ -108,14 +109,24 @@ def get_data(url):
 
     date_recorded = -1
     date_published = -1
+    native_language = ""
+    ext_src = ""
+    ext_id = ""
+    ext_duration = ""
     for player_talk in current_talk_JSON["player_talks"]:
         if player_talk["id"] == talk_id:
             date_recorded = datetime.strptime(current_talk_JSON["recorded_at"][:10], "%Y-%m-%d").date()
             date_published = datetime.fromtimestamp(player_talk["published"]).date()
+            if "external" in player_talk:
+                ext_src = player_talk["external"]["service"]
+                ext_id = player_talk["external"]["code"]
+                ext_duration = player_talk["external"]["duration"]
+            if "nativeLanguage" in player_talk:
+                native_language = player_talk["nativeLanguage"]
             break
 
     nb_comments = -1
-    if full_JSON["comments"]:
+    if "comments" in full_JSON:
         nb_comments = full_JSON["comments"]["count"]
 
     nb_speakers = 0
@@ -131,11 +142,12 @@ def get_data(url):
     transcript = get_transcript(url)
 
     return {
-        "id": int(talk_id), "url": talk_url, "main_speaker": main_speaker, "title": title,
+        "id": int(talk_id), "url": talk_url, "main_speaker": main_speaker, "title": title, "full_name": full_name,
         "event": event, "event_type": event_type, "description": description, "tags": tags,
         "date_recorded": date_recorded, "date_published": date_published, "duration": duration,
-        "nb_languages": nb_languages, "views": views, "nb_comments": nb_comments,
+        "native_language": native_language, "nb_languages": nb_languages, "views": views, "nb_comments": nb_comments,
         "nb_speakers": nb_speakers, "speakers": speakers, "speakers_desc": speakers_desc,
+        "ext_src": ext_src, "ext_id": ext_id, "ext_duration": ext_duration,
         "transcript": transcript
     }
 
@@ -144,11 +156,12 @@ def crawl_and_update(output_file,
                      success_log,
                      failure_log):
     csv_header = [
-        "id", "url", "main_speaker", "title",
+        "id", "url", "main_speaker", "title", "full_name",
         "event", "event_type", "description", "tags",
         "date_recorded", "date_published", "duration",
-        "nb_languages", "views", "nb_comments",
+        "native_language", "nb_languages", "views", "nb_comments",
         "nb_speakers", "speakers", "speakers_desc",
+        "ext_src", "ext_id", "ext_duration",
         "transcript"
     ]
 
