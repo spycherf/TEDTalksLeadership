@@ -126,7 +126,7 @@ def get_data(url):
             break
 
     nb_comments = -1
-    if "comments" in full_JSON:
+    if full_JSON["comments"]:
         nb_comments = full_JSON["comments"]["count"]
 
     nb_speakers = 0
