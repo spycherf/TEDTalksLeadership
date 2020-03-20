@@ -5,9 +5,10 @@ import sys
 from apiclient.discovery import build
 from crawler import request_html
 from datetime import datetime
+from secret import youtube_api_key
 from urllib.error import HTTPError
 
-youtube = build("youtube", "v3", developerKey="AIzaSyCpD2tRTXZtrLPctPEoHyOA_duPqgi74-w")
+youtube = build("youtube", "v3", developerKey=youtube_api_key)
 
 
 def get_transcript(video_id):
