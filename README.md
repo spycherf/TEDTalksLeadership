@@ -8,6 +8,6 @@
 
 All the files pertaining to data collection are stored under `/data`:
 
-* `ted_scraper.py`: script used to scrape the TED website (heavily inspired by [this project](https://github.com/ROC-HCI/TEDTalk_Analytics/)
+* `ted_scraper.py`: script used to scrape the TED website (heavily inspired by [this project](https://github.com/ROC-HCI/TEDTalk_Analytics/))
 * `youtube_query.py`: script used to harvest the YouTube data using their API
 * The data itself is saved in the `/ted` and `/youtube` subfolders. In each case, the `successful.txt` and `failed.txt` files contain the IDs of records that could/could not be retrieved, respectively.
