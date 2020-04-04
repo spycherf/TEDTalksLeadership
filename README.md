@@ -1,4 +1,4 @@
-# Exploring the Impact of Charismatic Leadership Tactics Used by TED Speakers
+# Exploring the Impact of Charismatic and Leader-Like Speakers on Their Audience
 
 *DM & ML semester project led by Prof. Michalis Vlachos, HEC Lausanne*
 
