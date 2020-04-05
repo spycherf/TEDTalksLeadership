@@ -1,6 +1,8 @@
 import csv
 import json
+import os
 import requests
+import sys
 from secret import ibm_api_url, ibm_api_key
 
 
@@ -13,41 +15,72 @@ def get_insights(talk_id, transcript):
         "Accept-Charset": "UTF-8",
         "Accept": "application/json"
     }
+    response = requests.post(ibm_api_url, auth=key, data=payload, headers=headers)
+    profile = json.loads(response.text)
 
-    return requests.post(ibm_api_url, auth=key, data=payload, headers=headers)
+    return {
+        "id": int(talk_id),
+        "big5_openness": profile["personality"][0]["percentile"],
+        "big5_conscientiousness": profile["personality"][1]["percentile"],
+        "big5_extraversion": profile["personality"][2]["percentile"],
+        "big5_agreeableness": profile["personality"][3]["percentile"],
+        "big5_neuroticism": profile["personality"][4]["percentile"]
+    }
 
 
 def query_and_update(input_file,
                      output_file,
-                     success_log):
+                     success_log,
+                     failure_log):
+    csv_header = [
+        "id",
+        "big5_openness", "big5_conscientiousness", "big5_extraversion", "big5_agreeableness", "big5_neuroticism"
+    ]
 
     # Get list of IDs that have already been queried and can be skipped
     with open(success_log, "r") as f:
-        to_skip = [line.strip("\n") for line in f]
+        success = [line.strip("\n") for line in f]
+    with open(failure_log, "r") as f:
+        failure = [line.strip("\n") for line in f]
+    to_skip = success + failure
+
+    # If output file doesn't exist, write header
+    if not os.path.isfile(output_file):
+        with open(output_file, "w", newline="", encoding="utf-8") as csv_file:
+            writer = csv.DictWriter(csv_file, fieldnames=csv_header)
+            writer.writeheader()
 
     # Update records
-    with open(input_file, "r", encoding="utf-8") as csv_file:
-        reader = csv.reader(csv_file, delimiter=",")
+    with open(input_file, "r", encoding="utf-8") as transcripts_file:
+        reader = csv.reader(transcripts_file, delimiter=",")
         next(reader)  # Skip header
+
         for row in reader:
+            sys.stdout.flush()
             talk_id, transcript = row
+
             if talk_id in to_skip:
                 continue
-            insights = json.loads(get_insights(talk_id, transcript).text)
-            with open(output_file, "r+", encoding="utf-8") as json_file:  # Have to rewrite the whole file each time...
-                file_contents = json.load(json_file)
-                record = {"id": int(talk_id), "personality_insights": insights}
-                file_contents.append(record)
-                json_file.seek(0)
-                json.dump(file_contents, json_file, indent=2)
-                with open(success_log, "a") as f:
-                    f.write(talk_id + "\n")
+
+            with open(output_file, "a", newline="", encoding="utf-8") as csv_file:
+                writer = csv.DictWriter(csv_file, fieldnames=csv_header)
+
+                try:
+                    writer.writerow(get_insights(talk_id, transcript))
+                    csv_file.flush()
+                    with open(success_log, "a") as f:
+                        f.write(talk_id + "\n")
+                except KeyError as e:
+                    print("Querying ID {0} failed because of {1}".format(talk_id, e))
+                    with open(failure_log, "a") as f:
+                        f.write(talk_id + "\n")
 
 
 def main():
     query_and_update("ibm/transcripts.csv",
-                     "ibm/personality_insights.json",
-                     "ibm/successful.txt")
+                     "ibm/personality_insights.csv",
+                     "ibm/successful.txt",
+                     "ibm/failed.txt")
 
 
 if __name__ == "__main__":
