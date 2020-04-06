@@ -18,24 +18,13 @@ def get_insights(talk_id, transcript):
     response = requests.post(ibm_api_url, auth=key, data=payload, headers=headers)
     profile = json.loads(response.text)
 
-    return {
-        "id": int(talk_id),
-        "big5_openness": profile["personality"][0]["percentile"],
-        "big5_conscientiousness": profile["personality"][1]["percentile"],
-        "big5_extraversion": profile["personality"][2]["percentile"],
-        "big5_agreeableness": profile["personality"][3]["percentile"],
-        "big5_neuroticism": profile["personality"][4]["percentile"]
-    }
+    return {"id": int(talk_id), "personality_profile": profile}
 
 
 def query_and_update(input_file,
                      output_file,
                      success_log,
                      failure_log):
-    csv_header = [
-        "id",
-        "big5_openness", "big5_conscientiousness", "big5_extraversion", "big5_agreeableness", "big5_neuroticism"
-    ]
 
     # Get list of IDs that have already been queried and can be skipped
     with open(success_log, "r") as f:
@@ -43,6 +32,8 @@ def query_and_update(input_file,
     with open(failure_log, "r") as f:
         failure = [line.strip("\n") for line in f]
     to_skip = success + failure
+
+    csv_header = ["id", "personality_profile"]
 
     # If output file doesn't exist, write header
     if not os.path.isfile(output_file):
@@ -78,7 +69,7 @@ def query_and_update(input_file,
 
 def main():
     query_and_update("ibm/transcripts.csv",
-                     "ibm/personality_insights.csv",
+                     "ibm/personality_profiles.csv",
                      "ibm/successful.txt",
                      "ibm/failed.txt")
 
