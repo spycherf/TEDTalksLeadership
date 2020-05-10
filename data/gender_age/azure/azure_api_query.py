@@ -106,20 +106,15 @@ def query_and_update(input_file,
             with open(output_file, "a", newline="", encoding="utf-8") as csv_file:
                 writer = csv.DictWriter(csv_file, fieldnames=csv_header)
 
-                # try:
                 writer.writerow(gender_age_estimation(talk_id, photo_url, video_thumb_url))
                 csv_file.flush()
                 with open(success_log, "a") as f:
                     f.write(talk_id + "\n")
-                # except Exception as e:
-                #     print("Querying ID {0} failed because of {1}".format(talk_id, e))
-                #     with open(failure_log, "a") as f:
-                #         f.write(talk_id + "\n")
 
 
 def main():
-    query_and_update("input/ted_talks_images_FULL.csv",
-                     "output/gender_age_estimates_notranscript.csv",
+    query_and_update("input/ted_talks_images_urls.csv",
+                     "output/gender_age_estimates.csv",
                      "logs/successful.txt",
                      "logs/failed.txt")
 
