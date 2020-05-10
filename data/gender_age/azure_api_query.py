@@ -26,6 +26,8 @@ def get_gender_age(url):
         gender = faces[0]["faceAttributes"]["gender"]  # Assuming the first face is the right one
         age = faces[0]["faceAttributes"]["age"]  # Same assumption
     except KeyError:  # Sometimes getting this error for some reason, just need to try again
+        print("KeyError. Trying again...")
+        time.sleep(1)
         get_gender_age(url)
 
     return gender, age
@@ -36,17 +38,26 @@ def gender_age_estimation(talk_id, photo_url, video_thumb_url):
     gender1 = gender2 = ""
     age1 = age2 = 0
 
-    if photo_url:
-        try:
-            gender1, age1 = get_gender_age(photo_url)
-        except IndexError:
-            print("No face identified in speaker photo")
+    try:
+        if photo_url:
+            try:
+                gender1, age1 = get_gender_age(photo_url)
+            except IndexError:
+                print("No face identified in speaker photo")
+        else:
+            print("No speaker photo available")
 
-    if video_thumb_url:
-        try:
-            gender2, age2 = get_gender_age(video_thumb_url)
-        except IndexError:
-            print("No face identified in video thumbnail")
+        if video_thumb_url:
+            try:
+                gender2, age2 = get_gender_age(video_thumb_url)
+            except IndexError:
+                print("No face identified in video thumbnail")
+        else:
+            print("No video thumbnail available")
+
+    except UnboundLocalError:
+        print("UnboundLocalError. Trying again...")
+        gender_age_estimation(talk_id, photo_url, video_thumb_url)
 
     est_gender = gender1 if gender1 else gender2  # Assuming gender is more likely to be accurate in photo
 

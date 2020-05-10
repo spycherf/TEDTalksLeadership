@@ -14,6 +14,12 @@ youtube = build("youtube", "v3", developerKey=KEY)
 
 
 def get_transcript(video_id):
+    """
+    This function is not needed anymore because transcripts are now retrieved
+    using the youtube_transcript_api library (see youtube_transcripts.py script).
+    However, we keep it here in case the aforementioned library stops working
+    (based on the YouTube web-client, an undocumented part of the YouTube API).
+    """
     transcript = ""
 
     try:
@@ -57,16 +63,16 @@ def get_video_metadata(video_id, parts):
         nb_comments = video["statistics"]["commentCount"]
 
     # Get transcript
-    transcript = ""
-    captions_available = video["contentDetails"]["caption"]
-    if captions_available == "true":
-        transcript = get_transcript(video_id)
+    # transcript = ""
+    # captions_available = video["contentDetails"]["caption"]
+    # if captions_available == "true":
+    #     transcript = get_transcript(video_id)
 
     return {
         "id": video_id, "channel": channel, "title": title,
         "description": description, "tags": tags, "date_published": date_published,
         "views": views, "likes": likes, "dislikes": dislikes, "nb_comments": nb_comments,
-        "transcript": transcript
+        # "transcript": transcript
     }
 
 
@@ -90,7 +96,7 @@ def query_and_update(input_file,
         "id", "channel", "title",
         "description", "tags", "date_published",
         "views", "likes", "dislikes", "nb_comments",
-        "transcript"
+        # "transcript"
     ]
 
     # If output file doesn't exist, write header
@@ -124,8 +130,8 @@ def query_and_update(input_file,
 def main():
     query_and_update("input/youtube_ids.txt",
                      "output/ted_talks_YT_metadata_transcript.csv",
-                     "logs/successful.txt",
-                     "logs/failed.txt")
+                     "logs/metadata_successful.txt",
+                     "logs/metadata_failed.txt")
 
 
 if __name__ == "__main__":
