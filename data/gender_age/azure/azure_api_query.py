@@ -2,6 +2,7 @@ import csv
 import json
 import os
 import requests
+from requests.exceptions import HTTPError
 import sys
 import time
 
@@ -10,6 +11,8 @@ KEY = os.environ["AZURE_KEY"]
 
 
 def get_gender_age(url):
+    time.sleep(3.5)  # Free plan includes 20 transactions per minute, sleep 3.5 seconds to be on the safe side
+
     headers = {"Ocp-Apim-Subscription-Key": KEY}
     params = {
         "returnFaceId": "true",
@@ -17,15 +20,17 @@ def get_gender_age(url):
         "returnFaceAttributes": "age,gender"
     }
 
-    time.sleep(1)
-
     response = requests.post(ENDPOINT, params=params, headers=headers, json={"url": url})
-    faces = json.loads(response.text)
+
+    if response.status_code == 403:
+        raise HTTPError("403 Forbidden: monthly quota reached")
 
     try:
+        faces = json.loads(response.text)
+        print(faces)
         gender = faces[0]["faceAttributes"]["gender"]  # Assuming the first face is the right one
         age = faces[0]["faceAttributes"]["age"]  # Same assumption
-    except KeyError:  # Sometimes getting this error for some reason, just need to try again
+    except KeyError:  # Probably occurs when going over transaction limit
         print("KeyError. Trying again...")
         time.sleep(1)
         get_gender_age(url)
@@ -68,6 +73,8 @@ def gender_age_estimation(talk_id, photo_url, video_thumb_url):
     else:
         est_age = age2
 
+    assert est_gender and est_age != 0
+
     return {"id": talk_id, "est_gender": est_gender, "est_age": int(est_age)}
 
 
@@ -106,10 +113,15 @@ def query_and_update(input_file,
             with open(output_file, "a", newline="", encoding="utf-8") as csv_file:
                 writer = csv.DictWriter(csv_file, fieldnames=csv_header)
 
-                writer.writerow(gender_age_estimation(talk_id, photo_url, video_thumb_url))
-                csv_file.flush()
-                with open(success_log, "a") as f:
-                    f.write(talk_id + "\n")
+                try:
+                    writer.writerow(gender_age_estimation(talk_id, photo_url, video_thumb_url))
+                    csv_file.flush()
+                    with open(success_log, "a") as f:
+                        f.write(talk_id + "\n")
+                except AssertionError:
+                    print("Querying ID {0} failed (no face)".format(talk_id))
+                    with open(failure_log, "a") as f:
+                        f.write(talk_id + "\n")
 
 
 def main():
