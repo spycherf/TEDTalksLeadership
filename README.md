@@ -8,6 +8,8 @@
 
 `notebook.ipynb` is the project's main file. It contains background information about the project, data collection, the cleaning process, etc. Custom functions used in the notebook were put in the `notebook_functions.py` file so as not to clutter the notebook needlessly.
 
+### Data
+
 All the files pertaining to data collection are stored under `data/`. Each subdirectory corresponds to a particular type of data, namely:
 
 * `metadata_transcripts`: the main data, which consist of TED(x) talks transcripts and metadata (such as name of the speaker, the hosting event, the number of views, and many more). This data comes from two sources: scraped from the TED website and queried through the YouTube API. The TED scraper was heavily inspired by [this project](https://github.com/ROC-HCI/TEDTalk_Analytics/), and provided the basic structure for other scripts.
@@ -23,3 +25,10 @@ All the files pertaining to data collection are stored under `data/`. Each subdi
     * **GMM audio analysis**: [Script](https://github.com/spycherf/TEDTalksLeadership/blob/master/data/gender_age/gmm/gender_prediction.py) | [Data](https://raw.githubusercontent.com/spycherf/TEDTalksLeadership/master/data/gender_age/gmm/output/gender_estimates.csv)
 
 In each case, the `logs/` subdirectory contains the IDs of records that could be processed successfully, and of those that failed.
+
+### Models
+
+Files related to machine learning can be found in the `models/` folder:
+
+* `tfidf_vec_full.pickle` / `model.d2v`: since vectorization can be quite time-consuming, both the fitted TF-IDF vectorizer and the Doc2Vec model are made available.
+* `tokens.txt`: the complete list of tokens from transcripts. Should additional cleaning be necessary, this file can be useful for detecting tokens that should be removed.
