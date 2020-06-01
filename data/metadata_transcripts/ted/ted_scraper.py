@@ -70,8 +70,8 @@ def get_data(url):
     ext_src = ""
     ext_id = ""
     ext_duration = ""
-    photo_url = ""
-    video_thumb_url = ""
+    # photo_url = ""
+    # video_thumb_url = ""
 
     for player_talk in current_talk_JSON["player_talks"]:
 
@@ -87,11 +87,11 @@ def get_data(url):
             if "nativeLanguage" in player_talk:
                 native_language = player_talk["nativeLanguage"]
 
-            if current_talk_JSON["speakers"]:
-                photo_url = current_talk_JSON["speakers"][0]["photo_url"]
-
-            if "thumb" in player_talk:
-                video_thumb_url = player_talk["thumb"]
+            # if current_talk_JSON["speakers"]:
+            #     photo_url = current_talk_JSON["speakers"][0]["photo_url"]
+            #
+            # if "thumb" in player_talk:
+            #     video_thumb_url = player_talk["thumb"]
 
             break
 
@@ -117,7 +117,7 @@ def get_data(url):
         "date_recorded": date_recorded, "date_published": date_published, "duration": duration,
         "native_language": native_language, "nb_languages": nb_languages, "views": views, "nb_comments": nb_comments,
         "nb_speakers": nb_speakers, "speakers": speakers, "speakers_desc": speakers_desc,
-        "photo_url": photo_url, "thumb_url": video_thumb_url,
+        # "photo_url": photo_url, "thumb_url": video_thumb_url,
         "ext_src": ext_src, "ext_id": ext_id, "ext_duration": ext_duration,
         "transcript": transcript
     }
@@ -139,7 +139,8 @@ def crawl_and_update(output_file,
         "event", "event_type", "description", "tags",
         "date_recorded", "date_published", "duration",
         "native_language", "nb_languages", "views", "nb_comments",
-        "nb_speakers", "speakers", "speakers_desc", "photo_url", "thumb_url"
+        "nb_speakers", "speakers", "speakers_desc",
+        # "photo_url", "thumb_url"
         "ext_src", "ext_id", "ext_duration",
         "transcript"
     ]

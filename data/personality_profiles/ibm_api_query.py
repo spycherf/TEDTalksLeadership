@@ -2,6 +2,7 @@ import csv
 import json
 import os
 import requests
+from requests.exceptions import HTTPError
 import sys
 
 ENDPOINT = os.environ["IBM_ENDPOINT"]
@@ -18,9 +19,19 @@ def get_insights(talk_id, transcript):
         "Accept": "application/json"
     }
     response = requests.post(ENDPOINT, auth=key, data=payload, headers=headers)
-    profile = json.dumps(json.loads(response.text))  # Change to "response.text" when project is over
 
-    return {"id": int(talk_id), "profile": profile}
+    if response.status_code == 403:
+        raise HTTPError("403 Forbidden: monthly quota reached")
+
+    if response.status_code == 404:
+        raise HTTPError("404 Not Found")
+
+    profile = json.loads(response.text)
+
+    if "error" in profile:
+        raise ValueError(profile["error"])
+
+    return {"id": int(talk_id), "profile": json.dumps(profile)}
 
 
 def query_and_update(input_file,
@@ -63,7 +74,7 @@ def query_and_update(input_file,
                     csv_file.flush()
                     with open(success_log, "a") as f:
                         f.write(talk_id + "\n")
-                except KeyError as e:
+                except ValueError as e:
                     print("Querying ID {0} failed because of {1}".format(talk_id, e))
                     with open(failure_log, "a") as f:
                         f.write(talk_id + "\n")

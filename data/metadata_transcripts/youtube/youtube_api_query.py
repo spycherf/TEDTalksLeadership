@@ -81,7 +81,7 @@ def query_and_update(input_file,
                      success_log,
                      failure_log):
 
-    # Get list of IDs
+    # Get list of YouTube IDs
     with open(input_file, "r") as f:
         ids = [line.strip("\n") for line in f]
 

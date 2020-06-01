@@ -16,7 +16,7 @@ All the files pertaining to data collection are stored under `data/`. Each subdi
     * **YouTube transcripts**: [Script](https://github.com/spycherf/TEDTalksLeadership/blob/master/data/metadata_transcripts/youtube/youtube_transcripts.py) | Data (hosted on SWITCHdrive)
     
 * `personality_profiles`: transcripts were fed to the IBM Watson Personality Insights API in order to get their respective personality profile, which contain among other things information about the Big Five personality traits.
-    * [Script](https://github.com/spycherf/TEDTalksLeadership/blob/master/data/personality_profiles/ibm_api_query.py) | [Data](https://raw.githubusercontent.com/spycherf/TEDTalksLeadership/master/data/personality_profiles/output/personality_profiles_json.csv)
+    * [Script](https://github.com/spycherf/TEDTalksLeadership/blob/master/data/personality_profiles/ibm_api_query.py) | Data (hosted on SWITCHdrive)
     
 * `gender_age` = estimates of the gender and age of TED(x) speakers based on either their photo/video thumbnail, or, in the case of gender, the pitch of their voice.
     * **Azure**: [Script](https://github.com/spycherf/TEDTalksLeadership/blob/master/data/gender_age/azure/azure_api_query.py) | [Data](https://raw.githubusercontent.com/spycherf/TEDTalksLeadership/master/data/gender_age/azure/output/gender_age_estimates.csv)
